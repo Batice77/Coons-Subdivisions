@@ -60,6 +60,10 @@ public class Edge
         vertices[0] = vertex1;
         vertices[1] = vertex2;
 
+        // Add Edge to the vertice
+        vertex1.InternalAddEdge(this);
+        vertex2.InternalAddEdge(this);
+
         triangles = new List<Triangle>();
 
         color = Color.red;
@@ -87,6 +91,10 @@ public class Triangle
         edges[0] = edge1;
         edges[1] = edge2;
         edges[2] = edge3;
+
+        edge1.InternalAddTriangle(this);
+        edge2.InternalAddTriangle(this);
+        edge3.InternalAddTriangle(this);
 
         color = Color.green;
     }
@@ -179,11 +187,6 @@ public class MeshUtility
         }
         Edge nEdge = new Edge(vert1, vert2);
         edges.Add(nEdge);
-
-        // Add Edge to the vertice
-        vert1.InternalAddEdge(nEdge);
-        vert2.InternalAddEdge(nEdge);
-
         return nEdge;
     }
 
@@ -262,10 +265,9 @@ public class MeshUtility
 
                 // Draw Vertices
                 Gizmos.color = vert1.GetColor();
-                Gizmos.DrawWireSphere(vert1+pos, 0.5f);
+                Gizmos.DrawWireSphere(vert1+pos, 0.01f);
                 Gizmos.color = vert2.GetColor();
-                Gizmos.DrawWireSphere(vert2+pos, 0.5f);
-
+                Gizmos.DrawWireSphere(vert2+pos, 0.01f);
             }
 
             // Draw Normal
@@ -296,7 +298,7 @@ public class MeshUtility
         return triangles.FindIndex(x => x == triangle);
     }
 
-    public void AddQuad(Vector3 vec1, Vector3 vec2, Vector3 vec3, Vector3 vec4)
+    public void CreateQuad(Vector3 vec1, Vector3 vec2, Vector3 vec3, Vector3 vec4)
     {
         Vertex vert1 = FindOrCreateVertex(vec1);
         Vertex vert2 = FindOrCreateVertex(vec2);

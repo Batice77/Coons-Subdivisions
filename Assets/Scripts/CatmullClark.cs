@@ -14,13 +14,6 @@ public class CatmullClark : MonoBehaviour
         meshUtility = new MeshUtility(meshFilter.sharedMesh);
         DebugGraph.meshUtility = meshUtility;
 
-        /*print(meshUtility.vertices.Count);
-        foreach(Vertex v in meshUtility.vertices)
-        {
-            print(v.Edges.Count);
-        }
-        meshFilter.sharedMesh = meshUtility.ToMesh();*/
-
         foreach (Triangle face in meshUtility.triangles)
         {
             List<Vertex> faceVertices = new List<Vertex>();
@@ -62,14 +55,16 @@ public class CatmullClark : MonoBehaviour
                 midPoints.Add(Vertex.Average(edgeVertices));
 
                 foreach (Triangle triangle in edge.Triangles)
+                {
                     triangles.Add(triangle);
+                }
             }
 
             // Calculer la moyenne des faces points
             List<Vertex> facePoints = new List<Vertex>();
             foreach (Triangle triangle in triangles)
             {
-                Color col = triangle.color;
+                Color col = triangle.GetColor();
                 facePoints.Add(new Vector3(col.r, col.g, col.b));
             }
             Vector3 Q = Vertex.Average(facePoints);
@@ -83,27 +78,67 @@ public class CatmullClark : MonoBehaviour
         }
 
         MeshUtility mU = new MeshUtility();
-        //mU.AddQuad(new Vector3(0,0,0), new Vector3(-0.5f,1,0), new Vector3(-1, 0f, 0), new Vector3(-0.5f, -1, 0));
-
-        /*foreach (Triangle face in meshUtility.triangles)
+       
+        foreach (Triangle face in meshUtility.triangles)
         {
+            //Triangle face = meshUtility.triangles[0];
+
             Color color = face.GetColor();
             Vector3 faceVec = new Vector3(color.r, color.g, color.b);
 
-            foreach(Edge edge in face.edges)
+            Edge edge1 = face.edges[0];
+            color = edge1.GetColor();
+            Vector3 edgeVec1 = new Vector3(color.r, color.g, color.b);
+
+            Edge edge2 = face.edges[1];
+            color = edge2.GetColor();
+            Vector3 edgeVec2 = new Vector3(color.r, color.g, color.b);
+
+            // Trouver le vertex en commun
+            Vertex vertCommun;
+            if(edge1.vertices[0] == edge2.vertices[0] || edge1.vertices[0] == edge2.vertices[1])
             {
-                color = edge.GetColor();
-                Vector3 edgeVec = new Vector3(color.r, color.g, color.b);
-
-                foreach(Vertex vertex in edge.vertices)
-                {
-                    color = vertex.GetColor();
-                    Vector3 vertexVec = new Vector3(color.r, color.g, color.b);
-                }
+                vertCommun = edge1.vertices[0];
             }
-        }*/
+            else
+            {
+                vertCommun = edge1.vertices[1];
+            }
+            color = vertCommun.GetColor();
+            Vector3 vecCommun = new Vector3(color.r, color.g, color.b);
+            mU.CreateQuad(faceVec, edgeVec1, vecCommun, edgeVec2);
 
-        meshFilter.sharedMesh = mU.ToMesh();
+            Edge edge3 = face.edges[2];
+            color = edge3.GetColor();
+            Vector3 edgeVec3 = new Vector3(color.r, color.g, color.b);
+            if (edge3.vertices[0] == edge2.vertices[0] || edge3.vertices[0] == edge2.vertices[1])
+            {
+                vertCommun = edge3.vertices[0];
+            }
+            else
+            {
+                vertCommun = edge3.vertices[1];
+            }
+            color = vertCommun.GetColor();
+            vecCommun = new Vector3(color.r, color.g, color.b);
+            mU.CreateQuad(faceVec, edgeVec3, vecCommun, edgeVec2);
+
+            if (edge3.vertices[0] == edge1.vertices[0] || edge3.vertices[0] == edge1.vertices[1])
+            {
+                vertCommun = edge3.vertices[0];
+            }
+            else
+            {
+                vertCommun = edge3.vertices[1];
+            }
+            color = vertCommun.GetColor();
+            vecCommun = new Vector3(color.r, color.g, color.b);
+            mU.CreateQuad(faceVec, edgeVec3, vecCommun, edgeVec1);
+        }
+
+        meshUtility = mU;
+        DebugGraph.meshUtility = meshUtility;
+        meshFilter.sharedMesh = meshUtility.ToMesh();
     }
 
     // Update is called once per frame
