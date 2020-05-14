@@ -24,7 +24,7 @@ public class Vertex
     public static implicit operator Vertex(Vector3 vec) => new Vertex(vec);
     public static implicit operator Vector3(Vertex v) => v.position;
 
-    public void AddEdge(Edge edge)
+    public void InternalAddEdge(Edge edge)
     {
         edges.Add(edge);
     }
@@ -65,7 +65,7 @@ public class Edge
         color = Color.red;
     }
 
-    public void AddTriangle(Triangle triangle)
+    public void InternalAddTriangle(Triangle triangle)
     {
         triangles.Add(triangle);
     }
@@ -136,12 +136,13 @@ public class MeshUtility
     public List<Edge> edges;
     public List<Triangle> triangles;
 
-    public MeshUtility(Mesh mesh)
+    public MeshUtility(Mesh mesh=null)
     {
         vertices = new List<Vertex>();
         edges = new List<Edge>();
         triangles = new List<Triangle>();
 
+        if (mesh == null) return;
         for(int it=0; it< mesh.triangles.Length; it+=3)
         {
             Vertex vert1 = FindOrCreateVertex(mesh.vertices[mesh.triangles[it]]);
@@ -180,8 +181,8 @@ public class MeshUtility
         edges.Add(nEdge);
 
         // Add Edge to the vertice
-        vert1.AddEdge(nEdge);
-        vert2.AddEdge(nEdge);
+        vert1.InternalAddEdge(nEdge);
+        vert2.InternalAddEdge(nEdge);
 
         return nEdge;
     }
@@ -293,5 +294,25 @@ public class MeshUtility
     public int GetTriangleIndex(Triangle triangle)
     {
         return triangles.FindIndex(x => x == triangle);
+    }
+
+    public void AddQuad(Vector3 vec1, Vector3 vec2, Vector3 vec3, Vector3 vec4)
+    {
+        Vertex vert1 = FindOrCreateVertex(vec1);
+        Vertex vert2 = FindOrCreateVertex(vec2);
+        Vertex vert3 = FindOrCreateVertex(vec3);
+        Vertex vert4 = FindOrCreateVertex(vec4);
+
+        Edge edge1 = FindOrCreateEdge(vert1, vert2);
+        Edge edge2 = FindOrCreateEdge(vert2, vert3);
+        Edge edge3 = FindOrCreateEdge(vert3, vert4);
+        Edge edge4 = FindOrCreateEdge(vert4, vert1);
+        Edge edge5 = FindOrCreateEdge(vert2, vert4);
+
+        Triangle triangle = new Triangle(edge1, edge5, edge4);
+        triangles.Add(triangle);
+
+        Triangle triangle2 = new Triangle(edge2, edge3, edge5);
+        triangles.Add(triangle2);
     }
 }
