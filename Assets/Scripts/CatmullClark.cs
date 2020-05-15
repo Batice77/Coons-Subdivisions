@@ -95,15 +95,7 @@ public class CatmullClark : MonoBehaviour
             Vector3 edgeVec2 = new Vector3(color.r, color.g, color.b);
 
             // Trouver le vertex en commun
-            Vertex vertCommun;
-            if(edge1.vertices[0] == edge2.vertices[0] || edge1.vertices[0] == edge2.vertices[1])
-            {
-                vertCommun = edge1.vertices[0];
-            }
-            else
-            {
-                vertCommun = edge1.vertices[1];
-            }
+            Vertex vertCommun = edge1 ^ edge2;
             color = vertCommun.GetColor();
             Vector3 vecCommun = new Vector3(color.r, color.g, color.b);
             mU.CreateQuad(faceVec, edgeVec1, vecCommun, edgeVec2);
@@ -111,26 +103,13 @@ public class CatmullClark : MonoBehaviour
             Edge edge3 = face.edges[2];
             color = edge3.GetColor();
             Vector3 edgeVec3 = new Vector3(color.r, color.g, color.b);
-            if (edge3.vertices[0] == edge2.vertices[0] || edge3.vertices[0] == edge2.vertices[1])
-            {
-                vertCommun = edge3.vertices[0];
-            }
-            else
-            {
-                vertCommun = edge3.vertices[1];
-            }
+
+            vertCommun = edge3 ^ edge2;
             color = vertCommun.GetColor();
             vecCommun = new Vector3(color.r, color.g, color.b);
             mU.CreateQuad(faceVec, edgeVec3, vecCommun, edgeVec2);
 
-            if (edge3.vertices[0] == edge1.vertices[0] || edge3.vertices[0] == edge1.vertices[1])
-            {
-                vertCommun = edge3.vertices[0];
-            }
-            else
-            {
-                vertCommun = edge3.vertices[1];
-            }
+            vertCommun = edge3 ^ edge1;
             color = vertCommun.GetColor();
             vecCommun = new Vector3(color.r, color.g, color.b);
             mU.CreateQuad(faceVec, edgeVec3, vecCommun, edgeVec1);

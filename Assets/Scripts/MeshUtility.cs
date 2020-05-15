@@ -78,6 +78,19 @@ public class Edge
     {
         return color;
     }
+
+    // Retourne le vertex en commun entre 2 edge
+    public static Vertex operator ^(Edge left, Edge right)
+    {
+        if (left.vertices[0] == right.vertices[0] || left.vertices[0] == right.vertices[1])
+        {
+            return left.vertices[0];
+        }
+        else
+        {
+            return left.vertices[1];
+        }
+    }
 }
 
 public class Triangle
