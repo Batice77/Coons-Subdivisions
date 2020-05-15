@@ -7,6 +7,8 @@ public class Vertex
     public Vector3 position;
     List<Edge> edges;
     public Color color;
+    public Vector3 newPosition;
+    public bool isNew;
 
     public List<Edge> Edges
     {
@@ -48,6 +50,8 @@ public class Edge
     public Vertex[] vertices;
     List<Triangle> triangles;
     public Color color;
+    public Vector3 newPosition;
+    public bool isNew;
 
     public List<Triangle> Triangles
     {
@@ -329,5 +333,19 @@ public class MeshUtility
 
         Triangle triangle2 = new Triangle(edge2, edge3, edge5);
         triangles.Add(triangle2);
+    }
+
+    public void AddTriangle(Vector3 vec1, Vector3 vec2, Vector3 vec3)
+    {
+        Vertex vert1 = FindOrCreateVertex(vec1);
+        Vertex vert2 = FindOrCreateVertex(vec2);
+        Vertex vert3 = FindOrCreateVertex(vec3);
+
+        Edge edge1 = FindOrCreateEdge(vert1, vert2);
+        Edge edge2 = FindOrCreateEdge(vert2, vert3);
+        Edge edge3 = FindOrCreateEdge(vert3, vert1);
+
+        Triangle triangle = new Triangle(edge1, edge2, edge3);
+        triangles.Add(triangle);
     }
 }
