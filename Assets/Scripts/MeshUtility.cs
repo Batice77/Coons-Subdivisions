@@ -164,6 +164,22 @@ public class Triangle
     {
         return color;
     }
+
+    // Retourne le vertex qui n'est pas en commun avec ceux de l'arète
+    public static Vertex operator /(Triangle triangle, Edge edge)
+    {
+        Vertex vert1 = edge.Vertices[0];
+        Vertex vert2 = edge.Vertices[1];
+
+        foreach(Vertex v in triangle.GetVertices())
+        {
+            if(v!=vert1 || v!=vert2)
+            {
+                return v;
+            }
+        }
+        return null;
+    }
 }
 
 public class MeshUtility
@@ -348,17 +364,57 @@ public class MeshUtility
         Vertex vert3 = FindOrCreateVertex(vec3);
         Vertex vert4 = FindOrCreateVertex(vec4);
 
+        /*
+        1-2, 2-4, 4-1
+        2-3, 3-4, 2-4
+
+        1-3, 3-4, 4-1
+        1-2, 2-3, 3-1
+        */
+
         Edge edge1 = FindOrCreateEdge(vert1, vert2);
         Edge edge2 = FindOrCreateEdge(vert2, vert3);
         Edge edge3 = FindOrCreateEdge(vert3, vert4);
         Edge edge4 = FindOrCreateEdge(vert4, vert1);
-        Edge edge5 = FindOrCreateEdge(vert2, vert4);
 
-        Triangle triangle = new Triangle(edge1, edge5, edge4);
-        triangles.Add(triangle);
+        /*List<Vertex> vertices = new List<Vertex>();
+        vertices.Add(vert1);
+        vertices.Add(vert2);
+        vertices.Add(vert3);
+        vertices.Add(vert4);
+        Vertex quadCenter = Vertex.Average(vertices);
+        vertices.Clear();
 
-        Triangle triangle2 = new Triangle(edge2, edge3, edge5);
-        triangles.Add(triangle2);
+        vertices.Add(vert2);
+        vertices.Add(vert4);
+        Vertex edge24Center = Vertex.Average(vertices);
+        vertices.Clear();
+
+        vertices.Add(vert1);
+        vertices.Add(vert3);
+        Vertex edge13Center = Vertex.Average(vertices);
+
+        if (Vector3.Distance(edge24Center, quadCenter) < Vector3.Distance(edge13Center, quadCenter))*/
+        if (Vector3.Distance(vec2, vec4) < Vector3.Distance(vec1, vec3))
+        {
+            Edge edge5 = FindOrCreateEdge(vert2, vert4);
+
+            Triangle triangle = new Triangle(edge1, edge5, edge4);
+            triangles.Add(triangle);
+
+            Triangle triangle2 = new Triangle(edge2, edge3, edge5);
+            triangles.Add(triangle2);
+        }
+        else
+        {
+            Edge edge5 = FindOrCreateEdge(vert1, vert3);
+
+            Triangle triangle = new Triangle(edge5, edge3, edge4);
+            triangles.Add(triangle);
+
+            Triangle triangle2 = new Triangle(edge1, edge2, edge5);
+            triangles.Add(triangle2);
+        }
     }
 
     public void CreateTriangle(Vector3 vec1, Vector3 vec2, Vector3 vec3)
