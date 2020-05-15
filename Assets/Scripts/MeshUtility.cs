@@ -14,9 +14,9 @@ public class Vertex
     {
         get { return position; }
     }
-    public List<Edge> Edges
+    public IList<Edge> Edges
     {
-        get { return edges; }
+        get { return edges.AsReadOnly(); }
     }
 
     public Vertex(Vector3 point)
@@ -61,9 +61,9 @@ public class Edge
     {
         get { return vertices; }
     }
-    public List<Triangle> Triangles
+    public IList<Triangle> Triangles
     {
-        get { return triangles; }
+        get { return triangles.AsReadOnly(); }
     }
 
     public Edge(Vertex vertex1, Vertex vertex2)
@@ -188,17 +188,17 @@ public class MeshUtility
     List<Edge> edges;
     List<Triangle> triangles;
 
-    public List<Vertex> Vertices
+    public IList<Vertex> Vertices
     {
-        get { return vertices; }
+        get { return vertices.AsReadOnly(); }
     }
-    public List<Edge> Edges
+    public IList<Edge> Edges
     {
-        get { return edges; }
+        get { return edges.AsReadOnly(); }
     }
-    public List<Triangle> Triangles
+    public IList<Triangle> Triangles
     {
-        get { return triangles; }
+        get { return triangles.AsReadOnly(); }
     }
 
     public MeshUtility(Mesh mesh=null)
