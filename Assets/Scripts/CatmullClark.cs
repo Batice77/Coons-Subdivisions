@@ -14,7 +14,7 @@ public class CatmullClark : MonoBehaviour
         meshUtility = new MeshUtility(meshFilter.sharedMesh);
         DebugGraph.meshUtility = meshUtility;
 
-        foreach (Triangle face in meshUtility.triangles)
+        foreach (Triangle face in meshUtility.Triangles)
         {
             List<Vertex> faceVertices = new List<Vertex>();
             faceVertices.AddRange(face.GetVertices());
@@ -24,10 +24,10 @@ public class CatmullClark : MonoBehaviour
             face.color = new Color(facePoint.x, facePoint.y, facePoint.z);
         }
 
-        foreach (Edge edge in meshUtility.edges)
+        foreach (Edge edge in meshUtility.Edges)
         {
             List<Vertex> edgeVertices = new List<Vertex>();
-            edgeVertices.AddRange(edge.vertices);
+            edgeVertices.AddRange(edge.Vertices);
 
             // Récupérer les facePoints des faces adjacentes
             foreach(Triangle triangle in edge.Triangles)
@@ -42,7 +42,7 @@ public class CatmullClark : MonoBehaviour
             edge.color = new Color(edgePoint.x, edgePoint.y, edgePoint.z);
         }
 
-        foreach (Vertex vertex in meshUtility.vertices)
+        foreach (Vertex vertex in meshUtility.Vertices)
         {
             // Récupérer les faces points des triangles contenant le vertex
             HashSet<Triangle> triangles = new HashSet<Triangle>();
@@ -51,7 +51,7 @@ public class CatmullClark : MonoBehaviour
             foreach (Edge edge in vertex.Edges)
             {
                 List<Vertex> edgeVertices = new List<Vertex>();
-                edgeVertices.AddRange(edge.vertices);
+                edgeVertices.AddRange(edge.Vertices);
                 midPoints.Add(Vertex.Average(edgeVertices));
 
                 foreach (Triangle triangle in edge.Triangles)
@@ -79,18 +79,20 @@ public class CatmullClark : MonoBehaviour
 
         MeshUtility mU = new MeshUtility();
        
-        foreach (Triangle face in meshUtility.triangles)
+        foreach (Triangle face in meshUtility.Triangles)
         {
             //Triangle face = meshUtility.triangles[0];
 
             Color color = face.GetColor();
             Vector3 faceVec = new Vector3(color.r, color.g, color.b);
 
-            Edge edge1 = face.edges[0];
+            Edge[] faceEdges = face.Edges;
+            Edge edge1 = faceEdges[0];
+            Edge edge2 = faceEdges[1];
+            Edge edge3 = faceEdges[2];
             color = edge1.GetColor();
             Vector3 edgeVec1 = new Vector3(color.r, color.g, color.b);
-
-            Edge edge2 = face.edges[1];
+   
             color = edge2.GetColor();
             Vector3 edgeVec2 = new Vector3(color.r, color.g, color.b);
 
@@ -100,7 +102,6 @@ public class CatmullClark : MonoBehaviour
             Vector3 vecCommun = new Vector3(color.r, color.g, color.b);
             mU.CreateQuad(faceVec, edgeVec1, vecCommun, edgeVec2);
 
-            Edge edge3 = face.edges[2];
             color = edge3.GetColor();
             Vector3 edgeVec3 = new Vector3(color.r, color.g, color.b);
 

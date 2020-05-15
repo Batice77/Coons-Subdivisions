@@ -4,12 +4,16 @@ using UnityEngine;
 
 public class Vertex
 {
-    public Vector3 position;
+    Vector3 position;
     List<Edge> edges;
     public Color color;
     public Vector3 newPosition;
     public bool isNew;
 
+    public Vector3 Position
+    {
+        get { return position; }
+    }
     public List<Edge> Edges
     {
         get { return edges; }
@@ -47,12 +51,16 @@ public class Vertex
 
 public class Edge
 {
-    public Vertex[] vertices;
+    Vertex[] vertices;
     List<Triangle> triangles;
     public Color color;
     public Vector3 newPosition;
     public bool isNew;
 
+    public Vertex[] Vertices
+    {
+        get { return vertices; }
+    }
     public List<Triangle> Triangles
     {
         get { return triangles; }
@@ -90,17 +98,20 @@ public class Edge
         {
             return left.vertices[0];
         }
-        else
-        {
-            return left.vertices[1];
-        }
+        return left.vertices[1];
     }
 }
 
 public class Triangle
 {
-    public Edge[] edges;
+    Edge[] edges;
     public Color color;
+    public Vector3 newPosition;
+
+    public Edge[] Edges
+    {
+        get { return edges; }
+    }
 
     public Triangle(Edge edge1, Edge edge2, Edge edge3)
     {
@@ -118,29 +129,29 @@ public class Triangle
 
     public Vertex[] GetVertices()
     {
-        Vertex v1 = edges[0].vertices[0];
-        Vertex v2 = edges[1].vertices[0];
-        Vertex v3 = edges[2].vertices[0];
+        Vertex v1 = edges[0].Vertices[0];
+        Vertex v2 = edges[1].Vertices[0];
+        Vertex v3 = edges[2].Vertices[0];
         if (v1.Equals(v2))
         {
-            if (v3.Equals(edges[0].vertices[1]))
-                v2 = edges[1].vertices[1];
+            if (v3.Equals(edges[0].Vertices[1]))
+                v2 = edges[1].Vertices[1];
             else
-                v1 = edges[0].vertices[1];
+                v1 = edges[0].Vertices[1];
         }
         else if (v2.Equals(v3))
         {
-            if (v1.Equals(edges[2].vertices[1]))
-                v2 = edges[1].vertices[1];
+            if (v1.Equals(edges[2].Vertices[1]))
+                v2 = edges[1].Vertices[1];
             else
-                v3 = edges[2].vertices[1];
+                v3 = edges[2].Vertices[1];
         }
         else if (v1.Equals(v3))
         {
-            if (v2.Equals(edges[0].vertices[1]))
-                v3 = edges[2].vertices[1];
+            if (v2.Equals(edges[0].Vertices[1]))
+                v3 = edges[2].Vertices[1];
             else
-                v1 = edges[0].vertices[1];
+                v1 = edges[0].Vertices[1];
         }
         Vertex[] som = new Vertex[3];
         som[0] = v1;
@@ -157,9 +168,22 @@ public class Triangle
 
 public class MeshUtility
 {
-    public List<Vertex> vertices;
-    public List<Edge> edges;
-    public List<Triangle> triangles;
+    List<Vertex> vertices;
+    List<Edge> edges;
+    List<Triangle> triangles;
+
+    public List<Vertex> Vertices
+    {
+        get { return vertices; }
+    }
+    public List<Edge> Edges
+    {
+        get { return edges; }
+    }
+    public List<Triangle> Triangles
+    {
+        get { return triangles; }
+    }
 
     public MeshUtility(Mesh mesh=null)
     {
@@ -199,7 +223,8 @@ public class MeshUtility
     {
         foreach (Edge edge in edges)
         {
-            if (edge.vertices[0] == vert1 && edge.vertices[1] == vert2 || edge.vertices[0] == vert2 && edge.vertices[1] == vert1)
+            Vertex[] edgeVertices = edge.Vertices;
+            if (edgeVertices[0] == vert1 && edgeVertices[1] == vert2 || edgeVertices[0] == vert2 && edgeVertices[1] == vert1)
                 return edge;
         }
         Edge nEdge = new Edge(vert1, vert2);
@@ -273,11 +298,12 @@ public class MeshUtility
         foreach (Triangle triangle in triangles)
         {
             // Draw Edges
-            foreach(Edge edge in triangle.edges)
+            foreach(Edge edge in triangle.Edges)
             {
                 Gizmos.color = edge.GetColor();
-                Vertex vert1 = edge.vertices[0];
-                Vertex vert2 = edge.vertices[1];
+                Vertex[] edgeVertices = edge.Vertices;
+                Vertex vert1 = edgeVertices[0];
+                Vertex vert2 = edgeVertices[1];
                 Gizmos.DrawLine(vert1+pos, vert2+pos);
 
                 // Draw Vertices
@@ -335,7 +361,7 @@ public class MeshUtility
         triangles.Add(triangle2);
     }
 
-    public void AddTriangle(Vector3 vec1, Vector3 vec2, Vector3 vec3)
+    public void CreateTriangle(Vector3 vec1, Vector3 vec2, Vector3 vec3)
     {
         Vertex vert1 = FindOrCreateVertex(vec1);
         Vertex vert2 = FindOrCreateVertex(vec2);
