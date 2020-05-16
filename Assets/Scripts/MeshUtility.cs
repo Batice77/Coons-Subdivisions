@@ -166,7 +166,7 @@ public class Triangle
     }
 
     // Retourne le vertex qui n'est pas en commun avec ceux de l'arète
-    public static Vertex operator /(Triangle triangle, Edge edge)
+    public static Vertex operator -(Triangle triangle, Edge edge)
     {
         Vertex vert1 = edge.Vertices[0];
         Vertex vert2 = edge.Vertices[1];
