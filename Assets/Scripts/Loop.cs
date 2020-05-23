@@ -217,17 +217,17 @@ public class Loop : MonoBehaviour
                 if (commonVertices.Count != 0) {
                     newT1 = new Triangle(newEdge, new1, tEdges[0]);
                     newMeshUtility.AddTriangle(newMiddle, opposite, v1,
-                            Color.cyan, 0, t);
+                            /*Color.cyan*/ null, 0, t);
                     newT2 = new Triangle(newEdge, new2, tEdges[1]);
                     newMeshUtility.AddTriangle(newMiddle, opposite, v2,
-                            Color.cyan, 0, t);
+                            /*Color.cyan*/ null, 0, t);
                 } else {
                     newT1 = new Triangle(newEdge, new2, tEdges[0]);
                     newMeshUtility.AddTriangle(newMiddle, opposite, v2,
-                            Color.cyan, 0, t);
+                            /*Color.cyan*/ null, 0, t);
                     newT2 = new Triangle(newEdge, new1, tEdges[1]);
                     newMeshUtility.AddTriangle(newMiddle, opposite, v1,
-                            Color.cyan, 0, t);
+                            /*Color.cyan*/ null, 0, t);
                 }
 
                 // Update old edges' triangles
