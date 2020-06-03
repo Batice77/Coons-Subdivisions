@@ -239,7 +239,7 @@ public class MeshUtility
         }
     }
 
-    Vertex FindOrCreateVertex(Vector3 point)
+    public Vertex FindOrCreateVertex(Vector3 point)
     {
         foreach (Vertex vert in vertices)
         {
@@ -251,7 +251,7 @@ public class MeshUtility
         return v;
     }
 
-    Edge FindOrCreateEdge(Vertex vert1, Vertex vert2)
+    public Edge FindOrCreateEdge(Vertex vert1, Vertex vert2)
     {
         foreach (Edge edge in edges)
         {
