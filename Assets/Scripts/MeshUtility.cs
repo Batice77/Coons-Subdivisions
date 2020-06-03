@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using System.Linq;
 
 public class Vertex
 {
@@ -65,6 +66,21 @@ public class Vertex
     public Color GetColor()
     {
         return color;
+    }
+
+    public Triangle[] GetTriangles()
+    {
+        HashSet<Triangle> triangles = new HashSet<Triangle>();
+        foreach(Edge edge in edges)
+        {
+            foreach(Triangle tr in edge.Triangles)
+            {
+                if(tr.GetVertices().Contains(this))
+                    triangles.Add(tr);
+            }
+        }
+
+        return triangles.ToArray();
     }
 }
 
