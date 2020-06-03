@@ -46,10 +46,13 @@ public class BilinearSurface
 
     public void Draw(Color color)
     {
-        for(int i = 0; i < u * v - 1; i++)
+        for(int i = 0; i < v - 1; i++)
         {
-            //Debug.Log("p[0] : " + points[0] + ", p[1] : " + points[1]);
-            Debug.DrawLine(points[i], points[i + 1], color);
+            for(int j = 0; j < u - 1; j++)
+            {
+                Debug.DrawLine(points[i * u + j], points[i * u + j + 1], color);
+                Debug.DrawLine(points[i * u + j], points[(i+1) * u + j], color);
+            }
         }
     }
 }

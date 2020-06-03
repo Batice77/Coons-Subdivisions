@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
-public class Chaikin : MonoBehaviour
+public class Coons : MonoBehaviour
 {
     private Curve C1;
     private Curve C2;
