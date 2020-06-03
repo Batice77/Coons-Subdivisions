@@ -4,29 +4,29 @@ using UnityEngine;
 
 public class Surface
 {
-    public Curve c1;
-    public Curve c2;
+    public Curve curve1;
+    public Curve curve2;
     public List<Vector3> lines;
 
     public Surface()
     {
-        c1 = new Curve();
-        c2 = new Curve();
+        curve1 = new Curve();
+        curve2 = new Curve();
     }
 
     public Surface(Curve c1, Curve c2)
     {
-        this.c1 = c1;
-        this.c2 = c2;
+        this.curve1 = c1;
+        this.curve2 = c2;
         lines = new List<Vector3>();
     }
 
     public void GenerateLines()
     {
-        for (int i = 0; i < c1.points.Count; i++)
+        for (int i = 0; i < curve1.points.Count; i++)
         {
-            lines.Add(c1.points[i].position);
-            lines.Add(c2.points[i].position);
+            lines.Add(curve1.points[i].position);
+            lines.Add(curve2.points[i].position);
         }
     }
 

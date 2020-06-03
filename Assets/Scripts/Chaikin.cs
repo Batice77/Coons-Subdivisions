@@ -11,6 +11,8 @@ public class Chaikin : MonoBehaviour
     private Curve d2;
     private Surface s1;
     private Surface s2;
+    private Surface s3;
+    private BilinearSurface bs;
     [SerializeField]
     private List<Transform> C1_scene;
     [SerializeField]
@@ -52,14 +54,17 @@ public class Chaikin : MonoBehaviour
         C2 = new Curve(C2_scene);
         d1 = new Curve(d1_scene);
         d2 = new Curve(d2_scene);
+        bs = new BilinearSurface();
         chaikin_curve_C1 = new Curve(CreateChaikinCurve(C1, 0.33f, 0.25f, 2).points);
         chaikin_curve_C2 = new Curve(CreateChaikinCurve(C2, 0.33f, 0.25f, 2).points);
-        chaikin_curve_d1 = new Curve(CreateChaikinCurve(d1, 0.25f, 0.25f, 2).points);
-        chaikin_curve_d2 = new Curve(CreateChaikinCurve(d2, 0.25f, 0.25f, 2).points);
+        chaikin_curve_d1 = new Curve(CreateChaikinCurve(d1, 0.25f, 0.33f, 2).points);
+        chaikin_curve_d2 = new Curve(CreateChaikinCurve(d2, 0.25f, 0.33f, 2).points);
         s1 = new Surface(chaikin_curve_C1, chaikin_curve_C2);
         s1.GenerateLines();
         s2 = new Surface(chaikin_curve_d1, chaikin_curve_d2);
         s2.GenerateLines();
+        bs.Create(s1, s2);
+        Debug.Log(bs.points.Count);
     }
 
     private void Update()
@@ -74,6 +79,7 @@ public class Chaikin : MonoBehaviour
         chaikin_curve_d2.Draw(new Color(0, 0.5f, 0));
         s1.Draw(new Color(0.5f, 0, 0.5f));
         s2.Draw(new Color(0, 0.5f, 0.5f));
+        bs.Draw(Color.white);
     }
 
     public Curve CreateChaikinCurve(Curve initial_curve, float u, float v, int nb_iteration)
