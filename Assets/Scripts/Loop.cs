@@ -31,6 +31,7 @@ public class Loop : MonoBehaviour
             ComputeEdgesMiddlePositions();
             yield return StartCoroutine("SplitEdges");
             yield return StartCoroutine("FlipEdgesConnectingOldAndNewVertices");
+            Debug.Log("Done flipping edges!");
             //ApplyNewVerticesPositions();
 
             //meshFilter.sharedMesh = meshUtility.ToMesh();
@@ -73,7 +74,7 @@ public class Loop : MonoBehaviour
 
     private void MarkOriginalVertices()
     {
-        foreach (var vertex in meshUtility.vertices) {
+        foreach (var vertex in meshUtility.Vertices) {
             vertex.isNew = false;
         }
     }
@@ -85,11 +86,11 @@ public class Loop : MonoBehaviour
 
     private void ComputeOriginalVerticesNewPositions()
     {
-        foreach (var vertex in meshUtility.vertices) {
+        foreach (var vertex in meshUtility.Vertices) {
             float n = vertex.Edges.Count;
             float u2 = (n == 3) ? 3f/16f
                 : 1f/n*(5f/8f-Mathf.Pow((3f/8f+1f/4f*Mathf.Cos(2*Mathf.PI/n)), 2));
-            vertex.newPosition = (1f - n*u2) * vertex.position
+            vertex.newPosition = (1f - n*u2) * vertex.Position
                 + u2 * SumNeighboursPositions(vertex);
             //gizmoPointsToDrawYellow.Add((Vector3) vertex.newPosition);
         }
@@ -100,7 +101,7 @@ public class Loop : MonoBehaviour
         HashSet<Vertex> neighbours = new HashSet<Vertex>();
 
         foreach (Edge edge in vertex.Edges) {
-            neighbours.UnionWith(edge.vertices);
+            neighbours.UnionWith(edge.Vertices);
         }
 
         neighbours.Remove(vertex);
@@ -110,7 +111,7 @@ public class Loop : MonoBehaviour
         Vector3 sum = Vector3.zero;
 
         foreach (Vertex neighbour in neighbours) {
-            sum += neighbour.position;
+            sum += neighbour.Position;
         }
 
         return sum;
@@ -118,9 +119,9 @@ public class Loop : MonoBehaviour
 
     private void ComputeEdgesMiddlePositions()
     {
-        foreach (Edge edge in meshUtility.edges) {
-            Vector3 A = edge.vertices[0].position;
-            Vector3 B = edge.vertices[1].position;
+        foreach (Edge edge in meshUtility.Edges) {
+            Vector3 A = edge.Vertices[0].Position;
+            Vector3 B = edge.Vertices[1].Position;
 
             Triangle TC = edge.Triangles[0];
             var TCVertices = new List<Vertex>(TC.GetVertices());
@@ -145,107 +146,14 @@ public class Loop : MonoBehaviour
 
     private IEnumerator SplitEdges()
     {
-        foreach (Edge edge in meshUtility.edges) {
+        foreach (Edge edge in meshUtility.Edges) {
             if (edge.isNew) {
                 continue;
             }
 
             //edge.color = Color.cyan;
 
-            // split the edge
-            Vertex v1 = edge.vertices[0];
-            Vertex v2 = edge.vertices[1];
-            Vertex newMiddle = new Vertex(edge.newPosition);
-            newMiddle.isNew = true;
-            Edge new1 = new Edge(v1, newMiddle);
-            Edge new2 = new Edge(v2, newMiddle);
-            new1.isNew = true;
-            new2.isNew = true;
-
-            if (edge.Triangles[0] == edge.Triangles[1]) {
-                Debug.Log("Both edge triangles are identical!");
-                if (edge.Triangles.Count != 2) {
-                    Debug.Log("edge.Triangles.Count != 2");
-                }
-            }
-
-            // for each touching triangle
-            for (int i = 0; i < 2; ++i) {
-                Triangle t = edge.Triangles[i];
-
-                // create a new edge between middle vertex and opposite vertex
-                List<Vertex> tVertices = new List<Vertex>(t.GetVertices());
-                if (!tVertices.Remove(v1)) {
-                    Debug.Log("Could not remove v1 from tVertices!");
-                }
-                if (!tVertices.Remove(v2)) {
-                    Debug.Log("Could not remove v2 from tVertices!");
-                }
-                Vertex opposite = tVertices[0];
-
-                Edge newEdge = new Edge(newMiddle, opposite);
-                newEdge.isNew = true;
-
-                // update triangle of the other edges of the old triangle
-                List<Edge> tEdges = new List<Edge>(t.edges);
-                //List<Edge> tEdgesColorCopy = new List<Edge>(t.edges);
-                //foreach (Edge e in tEdges) {
-                //    e.color = Color.yellow;
-                //}
-                //edge.color = Color.cyan;
-                if (!tEdges.Remove(edge)) {
-                    Debug.Log("Could not remove edge from tEdges!");
-                }
-
-                Vertex[] vertices = tEdges[0].vertices;
-                HashSet<Vertex> commonVertices = new HashSet<Vertex>(vertices);
-                commonVertices.IntersectWith(new1.vertices);
-
-                // Apply new positions now for passing to new mesh
-                if (opposite.newPosition.HasValue) {
-                    opposite.position = (Vector3) opposite.newPosition;
-                }
-                if (v1.newPosition.HasValue) {
-                    v1.position = (Vector3) v1.newPosition;
-                }
-                if (v2.newPosition.HasValue) {
-                    v2.position = (Vector3) v2.newPosition;
-                }
-
-                Triangle newT1;
-                Triangle newT2;
-                if (commonVertices.Count != 0) {
-                    newT1 = new Triangle(newEdge, new1, tEdges[0]);
-                    newMeshUtility.AddTriangle(newMiddle, opposite, v1,
-                            /*Color.cyan*/ null, 0, t);
-                    newT2 = new Triangle(newEdge, new2, tEdges[1]);
-                    newMeshUtility.AddTriangle(newMiddle, opposite, v2,
-                            /*Color.cyan*/ null, 0, t);
-                } else {
-                    newT1 = new Triangle(newEdge, new2, tEdges[0]);
-                    newMeshUtility.AddTriangle(newMiddle, opposite, v2,
-                            /*Color.cyan*/ null, 0, t);
-                    newT2 = new Triangle(newEdge, new1, tEdges[1]);
-                    newMeshUtility.AddTriangle(newMiddle, opposite, v1,
-                            /*Color.cyan*/ null, 0, t);
-                }
-
-                // Update old edges' triangles
-                // Note: the new triangles have already been added to old edges
-                if (!tEdges[0].Triangles.Remove(t)) {
-                    Debug.Log("Could not remove t from tEdges[0]!");
-                }
-                if (!tEdges[1].Triangles.Remove(t)) {
-                    Debug.Log("Could not remove t from tEdges[1]!");
-                }
-
-                //yield return new WaitForSeconds(0.1f);
-                yield return null;
-
-                //foreach (Edge e in tEdgesColorCopy) {
-                //    e.color = Edge.defaultColor;
-                //}
-            }
+            yield return meshUtility.SplitEdge(edge, newMeshUtility);
 
             //edge.color = Color.green;
         }
@@ -256,11 +164,7 @@ public class Loop : MonoBehaviour
         //foreach (Edge e in newMeshUtility.edges) {
         //    e.color = Edge.defaultColor;
         //}
-        foreach (Vertex v in newMeshUtility.vertices) {
-            Debug.Assert(v.position[0] != 0f || v.position[1] != 0f
-                    || v.position[2] != 0f);
-        }
-        foreach (Edge edge in newMeshUtility.edges) {
+        foreach (Edge edge in newMeshUtility.Edges) {
             if (!edge.isNew) {
                 continue;
             }
@@ -269,14 +173,14 @@ public class Loop : MonoBehaviour
                 //if (e.Triangles.Count != 2) {
                 if (edge.Triangles.Count != 2) {
                     edge.color = Color.grey;
-                    Debug.Log("[FlipEdgesConnectingOldAndNewVertices] edge tris != 2");
+                    Debug.Log("[FlipEdgesConnectingOldAndNewVertices] edge tris != 2: " + edge.Triangles.Count);
                     Debug.Log("[FlipEdgesConnectingOldAndNewVertices] skipping edge");
                     //yield return new WaitForSeconds(0.2f);
                     continue;
                 }
             //}
-            Vertex A = edge.vertices[0];
-            Vertex B = edge.vertices[1];
+            Vertex A = edge.Vertices[0];
+            Vertex B = edge.Vertices[1];
 
             if (A.isNew && B.isNew) {
                 continue;

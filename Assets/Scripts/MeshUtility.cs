@@ -5,10 +5,10 @@ using UnityEngine;
 
 public class Vertex
 {
-    public Vector3 position;
+    Vector3 position;
     List<Edge> edges;
     public Color color;
-    public Vector3? newPosition;
+    public Vector3 newPosition;
     public bool isNew;
 
     public override string ToString()
@@ -23,9 +23,14 @@ public class Vertex
 
     public override bool Equals(object obj) => Equals(obj as Vertex);
 
-    public List<Edge> Edges
+    public Vector3 Position
     {
-        get { return edges; }
+        get { return position; }
+    }
+
+    public IList<Edge> Edges
+    {
+        get { return edges.AsReadOnly(); }
     }
 
     public Vertex(Vector3 point)
@@ -65,16 +70,20 @@ public class Vertex
 
 public class Edge
 {
-    public Vertex[] vertices;
+    Vertex[] vertices;
     List<Triangle> triangles;
     public Color color;
     public static Color defaultColor = Color.red;
     public Vector3 newPosition;
     public bool isNew;
 
-    public List<Triangle> Triangles
+    public Vertex[] Vertices
     {
-        get { return triangles; }
+        get { return vertices; }
+    }
+    public IList<Triangle> Triangles
+    {
+        get { return triangles.AsReadOnly(); }
     }
 
     public Edge(Vertex vertex1, Vertex vertex2)
@@ -114,17 +123,20 @@ public class Edge
         {
             return left.vertices[0];
         }
-        else
-        {
-            return left.vertices[1];
-        }
+        return left.vertices[1];
     }
 }
 
 public class Triangle
 {
-    public Edge[] edges;
+    Edge[] edges;
     public Color color;
+    public Vector3 newPosition;
+
+    public Edge[] Edges
+    {
+        get { return edges; }
+    }
 
     public bool Equals(Triangle other)
     {
@@ -153,29 +165,29 @@ public class Triangle
 
     public Vertex[] GetVertices()
     {
-        Vertex v1 = edges[0].vertices[0];
-        Vertex v2 = edges[1].vertices[0];
-        Vertex v3 = edges[2].vertices[0];
+        Vertex v1 = edges[0].Vertices[0];
+        Vertex v2 = edges[1].Vertices[0];
+        Vertex v3 = edges[2].Vertices[0];
         if (v1.Equals(v2))
         {
-            if (v3.Equals(edges[0].vertices[1]))
-                v2 = edges[1].vertices[1];
+            if (v3.Equals(edges[0].Vertices[1]))
+                v2 = edges[1].Vertices[1];
             else
-                v1 = edges[0].vertices[1];
+                v1 = edges[0].Vertices[1];
         }
         else if (v2.Equals(v3))
         {
-            if (v1.Equals(edges[2].vertices[1]))
-                v2 = edges[1].vertices[1];
+            if (v1.Equals(edges[2].Vertices[1]))
+                v2 = edges[1].Vertices[1];
             else
-                v3 = edges[2].vertices[1];
+                v3 = edges[2].Vertices[1];
         }
         else if (v1.Equals(v3))
         {
-            if (v2.Equals(edges[0].vertices[1]))
-                v3 = edges[2].vertices[1];
+            if (v2.Equals(edges[0].Vertices[1]))
+                v3 = edges[2].Vertices[1];
             else
-                v1 = edges[0].vertices[1];
+                v1 = edges[0].Vertices[1];
         }
         Vertex[] som = new Vertex[3];
         som[0] = v1;
@@ -188,13 +200,42 @@ public class Triangle
     {
         return color;
     }
+
+    // Retourne le vertex qui n'est pas en commun avec ceux de l'arète
+    public static Vertex operator -(Triangle triangle, Edge edge)
+    {
+        Vertex vert1 = edge.Vertices[0];
+        Vertex vert2 = edge.Vertices[1];
+
+        foreach(Vertex v in triangle.GetVertices())
+        {
+            if(v!=vert1 || v!=vert2)
+            {
+                return v;
+            }
+        }
+        return null;
+    }
 }
 
 public class MeshUtility
 {
-    public List<Vertex> vertices;
-    public List<Edge> edges;
-    public List<Triangle> triangles;
+    List<Vertex> vertices;
+    List<Edge> edges;
+    List<Triangle> triangles;
+
+    public IList<Vertex> Vertices
+    {
+        get { return vertices.AsReadOnly(); }
+    }
+    public IList<Edge> Edges
+    {
+        get { return edges.AsReadOnly(); }
+    }
+    public IList<Triangle> Triangles
+    {
+        get { return triangles.AsReadOnly(); }
+    }
 
     public MeshUtility(Mesh mesh=null)
     {
@@ -234,7 +275,8 @@ public class MeshUtility
     {
         foreach (Edge edge in edges)
         {
-            if (edge.vertices[0] == vert1 && edge.vertices[1] == vert2 || edge.vertices[0] == vert2 && edge.vertices[1] == vert1)
+            Vertex[] edgeVertices = edge.Vertices;
+            if (edgeVertices[0] == vert1 && edgeVertices[1] == vert2 || edgeVertices[0] == vert2 && edgeVertices[1] == vert1)
                 return edge;
         }
         Edge nEdge = new Edge(vert1, vert2);
@@ -308,11 +350,12 @@ public class MeshUtility
         foreach (Triangle triangle in triangles)
         {
             // Draw Edges
-            foreach(Edge edge in triangle.edges)
+            foreach(Edge edge in triangle.Edges)
             {
                 Gizmos.color = edge.GetColor();
-                Vertex vert1 = edge.vertices[0];
-                Vertex vert2 = edge.vertices[1];
+                Vertex[] edgeVertices = edge.Vertices;
+                Vertex vert1 = edgeVertices[0];
+                Vertex vert2 = edgeVertices[1];
                 Gizmos.DrawLine(vert1+pos, vert2+pos);
 
                 // Draw Vertices
@@ -350,6 +393,112 @@ public class MeshUtility
         return triangles.FindIndex(x => x == triangle);
     }
 
+    public IEnumerator SplitEdge(Edge edge, MeshUtility newMeshUtility)
+    {
+        // split the edge
+        Vertex v1 = edge.Vertices[0];
+        Vertex v2 = edge.Vertices[1];
+        Vertex newMiddle = new Vertex(edge.newPosition);
+        newMiddle.isNew = true;
+        Edge new1 = new Edge(v1, newMiddle);
+        Edge new2 = new Edge(v2, newMiddle);
+        new1.isNew = true;
+        new2.isNew = true;
+
+        // for each touching triangle
+        for (int i = 0; i < 2; ++i) {
+            Triangle t = edge.Triangles[i];
+
+            // create a new edge between middle vertex and opposite vertex
+            List<Vertex> tVertices = new List<Vertex>(t.GetVertices());
+            if (!tVertices.Remove(v1)) {
+                Debug.Log("Could not remove v1 from tVertices!");
+            }
+            if (!tVertices.Remove(v2)) {
+                Debug.Log("Could not remove v2 from tVertices!");
+            }
+            Vertex opposite = tVertices[0];
+
+            Edge newEdge = new Edge(newMiddle, opposite);
+            newEdge.isNew = true;
+
+            // update triangle of the other edges of the old triangle
+            List<Edge> tEdges = new List<Edge>(t.Edges);
+            //List<Edge> tEdgesColorCopy = new List<Edge>(t.edges);
+            //foreach (Edge e in tEdges) {
+            //    e.color = Color.yellow;
+            //}
+            //edge.color = Color.cyan;
+            if (!tEdges.Remove(edge)) {
+                Debug.Log("Could not remove edge from tEdges!");
+            }
+
+            Vertex[] vertices = tEdges[0].Vertices;
+            HashSet<Vertex> commonVertices = new HashSet<Vertex>(vertices);
+            commonVertices.IntersectWith(new1.Vertices);
+
+            //Debug.Assert(opposite.newPosition.HasValue != opposite.isNew
+            //        && v1.newPosition.HasValue != v1.isNew
+            //        && v2.newPosition.HasValue != v2.isNew); // TODO Check if this ever fails and if not, switch vector3? to vector3 for newPosition
+
+            Vertex newOpposite;
+            if (!opposite.isNew) {
+                newOpposite = new Vertex(opposite.newPosition);
+                newOpposite.isNew = opposite.isNew;
+            } else {
+                newOpposite = opposite;
+            }
+            Vertex newV1;
+            if (!v1.isNew) {
+                newV1 = new Vertex(v1.newPosition);
+                newV1.isNew = v1.isNew;
+            } else {
+                newV1 = v1;
+            }
+            Vertex newV2;
+            if (!v2.isNew) {
+                newV2 = new Vertex(v2.newPosition);
+                newV2.isNew = v2.isNew;
+            } else {
+                newV2 = v2;
+            }
+
+            Triangle newT1; // Those triangles must be created for edges to be
+            Triangle newT2; // correctly updated for the rest of the algorithm
+            if (commonVertices.Count != 0) {
+                newT1 = new Triangle(newEdge, new1, tEdges[0]);
+                newT2 = new Triangle(newEdge, new2, tEdges[1]);
+            } else {
+                newT1 = new Triangle(newEdge, new2, tEdges[0]);
+                newT2 = new Triangle(newEdge, new1, tEdges[1]);
+            }
+
+            Triangle tNew = new Triangle(new Edge(newOpposite, newV1),
+                    new Edge(newV1, newV2), new Edge(newV2, newOpposite));
+
+            newMeshUtility.CreateTriangle(newMiddle, newOpposite, newV1,
+                    /*Color.cyan*/ null, 0, tNew);
+            newMeshUtility.CreateTriangle(newMiddle, newOpposite, newV2,
+                    /*Color.cyan*/ null, 0, tNew);
+
+            // Update old edges' triangles
+            // Note: the new triangles have already been added to old edges
+            if (!tEdges[0].InternalRemoveTriangle(t)) {
+                Debug.Log("Could not remove t from tEdges[0]!");
+            }
+            if (!tEdges[1].InternalRemoveTriangle(t)) {
+                Debug.Log("Could not remove t from tEdges[1]!");
+            }
+        }
+
+        //yield return new WaitForSeconds(0.1f);
+        yield return null;
+
+        //foreach (Edge e in tEdgesColorCopy) {
+        //    e.color = Edge.defaultColor;
+        //}
+    }
+
     public void CreateQuad(Vector3 vec1, Vector3 vec2, Vector3 vec3, Vector3 vec4)
     {
         Vertex vert1 = FindOrCreateVertex(vec1);
@@ -357,21 +506,62 @@ public class MeshUtility
         Vertex vert3 = FindOrCreateVertex(vec3);
         Vertex vert4 = FindOrCreateVertex(vec4);
 
+        /*
+        1-2, 2-4, 4-1
+        2-3, 3-4, 2-4
+
+        1-3, 3-4, 4-1
+        1-2, 2-3, 3-1
+        */
+
         Edge edge1 = FindOrCreateEdge(vert1, vert2);
         Edge edge2 = FindOrCreateEdge(vert2, vert3);
         Edge edge3 = FindOrCreateEdge(vert3, vert4);
         Edge edge4 = FindOrCreateEdge(vert4, vert1);
-        Edge edge5 = FindOrCreateEdge(vert2, vert4);
 
-        Triangle triangle = new Triangle(edge1, edge5, edge4);
-        triangles.Add(triangle);
+        /*List<Vertex> vertices = new List<Vertex>();
+        vertices.Add(vert1);
+        vertices.Add(vert2);
+        vertices.Add(vert3);
+        vertices.Add(vert4);
+        Vertex quadCenter = Vertex.Average(vertices);
+        vertices.Clear();
 
-        Triangle triangle2 = new Triangle(edge2, edge3, edge5);
-        triangles.Add(triangle2);
+        vertices.Add(vert2);
+        vertices.Add(vert4);
+        Vertex edge24Center = Vertex.Average(vertices);
+        vertices.Clear();
+
+        vertices.Add(vert1);
+        vertices.Add(vert3);
+        Vertex edge13Center = Vertex.Average(vertices);
+
+        if (Vector3.Distance(edge24Center, quadCenter) < Vector3.Distance(edge13Center, quadCenter))*/
+        if (Vector3.Distance(vec2, vec4) < Vector3.Distance(vec1, vec3))
+        {
+            Edge edge5 = FindOrCreateEdge(vert2, vert4);
+
+            Triangle triangle = new Triangle(edge1, edge5, edge4);
+            triangles.Add(triangle);
+
+            Triangle triangle2 = new Triangle(edge2, edge3, edge5);
+            triangles.Add(triangle2);
+        }
+        else
+        {
+            Edge edge5 = FindOrCreateEdge(vert1, vert3);
+
+            Triangle triangle = new Triangle(edge5, edge3, edge4);
+            triangles.Add(triangle);
+
+            Triangle triangle2 = new Triangle(edge1, edge2, edge5);
+            triangles.Add(triangle2);
+        }
     }
 
-    public void AddTriangle(Vertex vec1, Vertex vec2, Vertex vec3,
-            Color? color, int? newEdge, Triangle overlappingTriangle=null)
+    public void CreateTriangle(Vertex vec1, Vertex vec2, Vertex vec3,
+            Color? color=null, int? newEdge=null,
+            Triangle overlappingTriangle=null)
     {
         Vertex vert1 = FindOrCreateVertex(vec1);
         Vertex vert2 = FindOrCreateVertex(vec2);
@@ -393,11 +583,11 @@ public class MeshUtility
         }
 
         if (color.HasValue && triangles.Count != 0) {
-            foreach (Edge edge in triangles[triangles.Count-1].edges) {
+            foreach (Edge edge in triangles[triangles.Count-1].Edges) {
                 edge.color = Color.Lerp(Edge.defaultColor, (Color) color, .7f);
             }
             if (triangles.Count > 1) {
-                foreach (Edge edge in triangles[triangles.Count-2].edges) {
+                foreach (Edge edge in triangles[triangles.Count-2].Edges) {
                     edge.color = Edge.defaultColor;
                 }
             }
@@ -409,7 +599,7 @@ public class MeshUtility
             foreach (Triangle t in triangles) {
                 if (t.Equals(overlappingTriangle)) {
                     //Debug.Log("Let us remove some overlapping triangle!");
-                    foreach (Edge e in t.edges) {
+                    foreach (Edge e in t.Edges) {
                         e.InternalRemoveTriangle(t);
                     }
                     //edge1.InternalRemoveTriangle(t);
@@ -433,8 +623,8 @@ public class MeshUtility
 
     public void FlipEdge(Edge edge)
     {
-        Vertex A = edge.vertices[0];
-        Vertex B = edge.vertices[1];
+        Vertex A = edge.Vertices[0];
+        Vertex B = edge.Vertices[1];
         A.InternalRemoveEdge(edge);
         B.InternalRemoveEdge(edge);
 
@@ -454,7 +644,7 @@ public class MeshUtility
 
         var edgeTriangles = new List<Triangle>(edge.Triangles);
         foreach (Triangle t in edgeTriangles) {
-            foreach (Edge e in t.edges) {
+            foreach (Edge e in t.Edges) {
                 if (!e.InternalRemoveTriangle(t)) {
                     Debug.Log("Could not remove t from e. Already removed?");
                 }
@@ -462,45 +652,45 @@ public class MeshUtility
         }
 
         // Reuse edge by updating its vertices, effectively flipping it
-        edge.vertices[0] = C;
-        edge.vertices[1] = D;
+        edge.Vertices[0] = C;
+        edge.Vertices[1] = D;
         C.InternalAddEdge(edge);
         D.InternalAddEdge(edge);
 
-        var TCEdges = new List<Edge>(TC.edges);
-        var TDEdges = new List<Edge>(TD.edges);
+        var TCEdges = new List<Edge>(TC.Edges);
+        var TDEdges = new List<Edge>(TD.Edges);
         TCEdges.Remove(edge);
         TDEdges.Remove(edge);
         Debug.Assert(TCEdges.Count == 2);
         Debug.Assert(TDEdges.Count == 2);
-        if (TCEdges[0].vertices.Contains(TDEdges[0].vertices[0])
-                || TCEdges[0].vertices.Contains(TDEdges[0].vertices[1])) {
-            TC.edges[0] = TCEdges[0];
-            TC.edges[1] = TDEdges[0];
-            TC.edges[2] = edge;
+        if (TCEdges[0].Vertices.Contains(TDEdges[0].Vertices[0])
+                || TCEdges[0].Vertices.Contains(TDEdges[0].Vertices[1])) {
+            TC.Edges[0] = TCEdges[0];
+            TC.Edges[1] = TDEdges[0];
+            TC.Edges[2] = edge;
             TCEdges[0].InternalAddTriangle(TC);
             TDEdges[0].InternalAddTriangle(TC);
             edge.InternalAddTriangle(TC);
 
-            TD.edges[0] = TCEdges[1];
-            TD.edges[1] = TDEdges[1];
-            TD.edges[2] = edge;
+            TD.Edges[0] = TCEdges[1];
+            TD.Edges[1] = TDEdges[1];
+            TD.Edges[2] = edge;
             TCEdges[1].InternalAddTriangle(TD);
             TDEdges[1].InternalAddTriangle(TD);
             edge.InternalAddTriangle(TD);
             //triangles.Add(new Triangle(TCEdges[0], TDEdges[0], edge));
             //triangles.Add(new Triangle(TCEdges[1], TDEdges[1], edge));
         } else {
-            TC.edges[0] = TCEdges[0];
-            TC.edges[1] = TDEdges[1];
-            TC.edges[2] = edge;
+            TC.Edges[0] = TCEdges[0];
+            TC.Edges[1] = TDEdges[1];
+            TC.Edges[2] = edge;
             TCEdges[0].InternalAddTriangle(TC);
             TDEdges[1].InternalAddTriangle(TC);
             edge.InternalAddTriangle(TC);
 
-            TD.edges[0] = TCEdges[1];
-            TD.edges[1] = TDEdges[0];
-            TD.edges[2] = edge;
+            TD.Edges[0] = TCEdges[1];
+            TD.Edges[1] = TDEdges[0];
+            TD.Edges[2] = edge;
             TCEdges[1].InternalAddTriangle(TD);
             TDEdges[0].InternalAddTriangle(TD);
             edge.InternalAddTriangle(TD);
