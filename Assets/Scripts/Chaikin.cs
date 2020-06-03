@@ -5,54 +5,81 @@ using UnityEditor;
 
 public class Chaikin : MonoBehaviour
 {
-    [SerializeField]
     private Curve C1;
-    [SerializeField]
     private Curve C2;
+    private Curve d1;
+    private Curve d2;
+    private Surface s1;
+    private Surface s2;
     [SerializeField]
     private List<Transform> C1_scene;
     [SerializeField]
     private List<Transform> C2_scene;
     [SerializeField]
+    private List<Transform> d1_scene;
+    [SerializeField]
+    private List<Transform> d2_scene;
+    [SerializeField]
     private GameObject point;
+    [SerializeField]
+    private GameObject surface_point;
     [SerializeField]
     private bool show_points;
     private Curve chaikin_curve_C1;
     private Curve chaikin_curve_C2;
+    private Curve chaikin_curve_d1;
+    private Curve chaikin_curve_d2;
+    [SerializeField]
+    private bool show_C1 = true;
+    [SerializeField]
+    private bool show_C2 = true;
+    [SerializeField]
+    private bool show_d1 = true;
+    [SerializeField]
+    private bool show_d2 = true;
+    [SerializeField]
+    private bool show_chaikin_curve_C1 = true;
+    [SerializeField]
+    private bool show_chaikin_curve_C2 = true;
+    [SerializeField]
+    private bool show_chaikin_curve_d1 = true;
+    [SerializeField]
+    private bool show_chaikin_curve_d2 = true;
 
     private void Start()
     {
         C1 = new Curve(C1_scene);
-        chaikin_curve_C1 = new Curve();
-        chaikin_curve_C1 = CreateChaikinCurve(C1, 0.33f, 0.25f, 2);
+        C2 = new Curve(C2_scene);
+        d1 = new Curve(d1_scene);
+        d2 = new Curve(d2_scene);
+        chaikin_curve_C1 = new Curve(CreateChaikinCurve(C1, 0.33f, 0.25f, 2).points);
+        chaikin_curve_C2 = new Curve(CreateChaikinCurve(C2, 0.33f, 0.25f, 2).points);
+        chaikin_curve_d1 = new Curve(CreateChaikinCurve(d1, 0.25f, 0.25f, 2).points);
+        chaikin_curve_d2 = new Curve(CreateChaikinCurve(d2, 0.25f, 0.25f, 2).points);
+        s1 = new Surface(chaikin_curve_C1, chaikin_curve_C2);
+        s1.GenerateLines();
+        s2 = new Surface(chaikin_curve_d1, chaikin_curve_d2);
+        s2.GenerateLines();
     }
 
     private void Update()
     {
         C1.Draw(Color.yellow);
         chaikin_curve_C1.Draw(new Color(0.5f, 0.5f, 0));
-        //DrawCurve(C1, Color.yellow);
-        //DrawCurve(C2, Color.red);
-        //DrawCurve(chaikin_curve_C1, new Color(0.5f, 0.5f, 0));
+        C2.Draw(Color.red);
+        chaikin_curve_C2.Draw(new Color(0.5f, 0, 0));
+        d1.Draw(Color.blue);
+        chaikin_curve_d1.Draw(new Color(0, 0, 0.5f));
+        d2.Draw(Color.green);
+        chaikin_curve_d2.Draw(new Color(0, 0.5f, 0));
+        s1.Draw(new Color(0.5f, 0, 0.5f));
+        s2.Draw(new Color(0, 0.5f, 0.5f));
     }
-
-    //public void DrawPolygonLine()
-    //{
-    //    for (int i = 0; i < C1.Count - 1; i++)
-    //        DrawLine(C1[i].position, C1[i + 1].position, Color.yellow);
-    //}
-
-    //public void DrawCurve(Curve curve, Color color)
-    //{
-    //    for (int i = 0; i <curve.Count - 1; i++)
-    //        DrawLine(curve[i].position, curve[i + 1].position, color);
-    //}
 
     public Curve CreateChaikinCurve(Curve initial_curve, float u, float v, int nb_iteration)
     {
         Vector3 p1, p2, u_director, new_p1, new_p2;
         Curve tmp_polygon_line = initial_curve;
-        Debug.Log(initial_curve.points.Count);
         Curve curve = new Curve();
         curve.AddPoint(tmp_polygon_line.points[0].position, point);
         for (int i = 0; i < tmp_polygon_line.points.Count - 1; i++)
