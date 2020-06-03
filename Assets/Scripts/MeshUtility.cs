@@ -437,10 +437,6 @@ public class MeshUtility
             HashSet<Vertex> commonVertices = new HashSet<Vertex>(vertices);
             commonVertices.IntersectWith(new1.Vertices);
 
-            //Debug.Assert(opposite.newPosition.HasValue != opposite.isNew
-            //        && v1.newPosition.HasValue != v1.isNew
-            //        && v2.newPosition.HasValue != v2.isNew); // TODO Check if this ever fails and if not, switch vector3? to vector3 for newPosition
-
             Vertex newOpposite;
             if (!opposite.isNew) {
                 newOpposite = new Vertex(opposite.newPosition);
@@ -594,17 +590,11 @@ public class MeshUtility
         }
 
         if (overlappingTriangle != null) {
-            //Debug.Log("Trying to remove overlapping triangle "
-            //        + string.Join<Vertex>(", ", overlappingTriangle.GetVertices()));
             foreach (Triangle t in triangles) {
                 if (t.Equals(overlappingTriangle)) {
-                    //Debug.Log("Let us remove some overlapping triangle!");
                     foreach (Edge e in t.Edges) {
                         e.InternalRemoveTriangle(t);
                     }
-                    //edge1.InternalRemoveTriangle(t);
-                    //edge2.InternalRemoveTriangle(t);
-                    //edge3.InternalRemoveTriangle(t);
                     triangles.Remove(t);
                     break;
                 }
@@ -678,8 +668,6 @@ public class MeshUtility
             TCEdges[1].InternalAddTriangle(TD);
             TDEdges[1].InternalAddTriangle(TD);
             edge.InternalAddTriangle(TD);
-            //triangles.Add(new Triangle(TCEdges[0], TDEdges[0], edge));
-            //triangles.Add(new Triangle(TCEdges[1], TDEdges[1], edge));
         } else {
             TC.Edges[0] = TCEdges[0];
             TC.Edges[1] = TDEdges[1];
@@ -694,8 +682,6 @@ public class MeshUtility
             TCEdges[1].InternalAddTriangle(TD);
             TDEdges[0].InternalAddTriangle(TD);
             edge.InternalAddTriangle(TD);
-            //triangles.Add(new Triangle(TCEdges[0], TDEdges[1], edge));
-            //triangles.Add(new Triangle(TCEdges[1], TDEdges[0], edge));
         }
 
         //TC.edges[0].color = Color.magenta;
@@ -704,8 +690,5 @@ public class MeshUtility
         //TD.edges[0].color = Color.magenta;
         //TD.edges[1].color = Color.magenta;
         //TD.edges[2].color = Color.magenta;
-
-        //AddTriangle(A, C, D);
-        //AddTriangle(B, C, D);
     }
 }

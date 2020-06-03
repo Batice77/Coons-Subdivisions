@@ -8,8 +8,6 @@ public class Loop : MonoBehaviour
     MeshUtility meshUtility;
     MeshUtility newMeshUtility;
     List<Vector3> gizmoPointsToDraw;
-    List<Vector3> gizmoPointsToDrawYellow;
-    List<Vector3> gizmoPointsToDrawMagenta;
 
     IEnumerator Start()
     {
@@ -21,8 +19,6 @@ public class Loop : MonoBehaviour
             newMeshUtility = new MeshUtility();
             DebugGraph.meshUtility = meshUtility;
             gizmoPointsToDraw = new List<Vector3>();
-            gizmoPointsToDrawYellow = new List<Vector3>();
-            gizmoPointsToDrawMagenta = new List<Vector3>();
 
             //meshUtility.edges[2].color = Color.grey;
 
@@ -32,9 +28,7 @@ public class Loop : MonoBehaviour
             yield return StartCoroutine("SplitEdges");
             yield return StartCoroutine("FlipEdgesConnectingOldAndNewVertices");
             Debug.Log("Done flipping edges!");
-            //ApplyNewVerticesPositions();
 
-            //meshFilter.sharedMesh = meshUtility.ToMesh();
             meshFilter.sharedMesh = newMeshUtility.ToMesh();
         }
     }
@@ -62,14 +56,6 @@ public class Loop : MonoBehaviour
             Gizmos.color = Color.blue;
             Gizmos.DrawWireSphere(p + new Vector3(1.1f, 0, 0), 0.01f);
         }
-        foreach (Vector3 p in gizmoPointsToDrawYellow) {
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawWireSphere(p + new Vector3(1.1f, 0, 0), 0.01f);
-        }
-        foreach (Vector3 p in gizmoPointsToDrawMagenta) {
-            Gizmos.color = Color.magenta;
-            Gizmos.DrawWireSphere(p + new Vector3(1.1f, 0, 0), 0.01f);
-        }
     }
 
     private void MarkOriginalVertices()
@@ -92,7 +78,6 @@ public class Loop : MonoBehaviour
                 : 1f/n*(5f/8f-Mathf.Pow((3f/8f+1f/4f*Mathf.Cos(2*Mathf.PI/n)), 2));
             vertex.newPosition = (1f - n*u2) * vertex.Position
                 + u2 * SumNeighboursPositions(vertex);
-            //gizmoPointsToDrawYellow.Add((Vector3) vertex.newPosition);
         }
     }
 
@@ -138,7 +123,6 @@ public class Loop : MonoBehaviour
             Vector3 D = TDVertices[0];
 
             edge.newPosition = 3f/8f * (A + B) + 1f/8f * (C + D);
-            //gizmoPointsToDraw.Add(edge.newPosition);
             Debug.Assert(edge.newPosition[0] != 0f || edge.newPosition[1] != 0f
                     || edge.newPosition[2] != 0f);
         }
@@ -169,16 +153,13 @@ public class Loop : MonoBehaviour
                 continue;
             }
 
-            //foreach (Edge e in newMeshUtility.edges) {
-                //if (e.Triangles.Count != 2) {
-                if (edge.Triangles.Count != 2) {
-                    edge.color = Color.grey;
-                    Debug.Log("[FlipEdgesConnectingOldAndNewVertices] edge tris != 2: " + edge.Triangles.Count);
-                    Debug.Log("[FlipEdgesConnectingOldAndNewVertices] skipping edge");
-                    //yield return new WaitForSeconds(0.2f);
-                    continue;
-                }
-            //}
+            if (edge.Triangles.Count != 2) {
+                edge.color = Color.grey;
+                Debug.Log("[FlipEdgesConnectingOldAndNewVertices] edge tris != 2: " + edge.Triangles.Count);
+                Debug.Log("[FlipEdgesConnectingOldAndNewVertices] skipping edge");
+                //yield return new WaitForSeconds(0.2f);
+                continue;
+            }
             Vertex A = edge.Vertices[0];
             Vertex B = edge.Vertices[1];
 
@@ -186,8 +167,9 @@ public class Loop : MonoBehaviour
                 continue;
             }
 
+
             //foreach (Triangle t in edge.Triangles) {
-            //    foreach (Edge e in t.edges) {
+            //    foreach (Edge e in t.Edges) {
             //        e.color = Color.magenta;
             //    }
             //}
@@ -202,22 +184,12 @@ public class Loop : MonoBehaviour
             //yield return new WaitForSeconds(0.1f);
 
             //foreach (Triangle t in edge.Triangles) {
-            //    foreach (Edge e in t.edges) {
+            //    foreach (Edge e in t.Edges) {
             //        e.color = Edge.defaultColor;
             //    }
             //}
 
             yield return null;
         }
-    }
-
-    private void ApplyNewVerticesPositions()
-    {
-        //foreach (Vertex vertex in meshUtility.vertices) {
-        //    if (!vertex.isNew) {
-        //        Debug.Log("Updating old vertex position " + vertex.position + " to new position." + vertex.newPosition);
-        //        vertex.position = vertex.newPosition;
-        //    }
-        //}
     }
 }
